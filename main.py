@@ -1,29 +1,48 @@
-import asyncio
+from fastapi import FastAPI, HTTPException
 from config import settings
 from devices.kettle_client import KettleClient
+from devices.schemas import KettleState, SetTempRequest
 
 
 
 
+app = FastAPI(title="Smart-Kettle API")
+
+kettle_client = KettleClient(ip=settings.KETTLE_IP, token=settings.KETTLE_TOKEN)
 
 
+@app.get("/api/v1/kettle/status", response_model=KettleState)
+async def get_kettle_status():
 
-
-async def main():
-    client = KettleClient(ip=settings.KETTLE_IP, token=settings.KETTLE_TOKEN)
+    state = await kettle_client.get_state()
     
-    state = await client.get_state()
-    if state:
-        print(f"Температура сейчас - {state.current_temp}")
-        print(f"Цель по нагреву - {state.target}")
-        print(f"Код статуса работы - {state.status_code}")
-        print(f"Статус работы - {state.status}")
-        
-        answer = "Нет" if state.is_lifting else "Да"
-  
-        print(f"Находится ли чайник на базе? - {answer}")
+    if state is None:
+        raise HTTPException(status_code=503, detail="Чайник недоступен")  
+    return state
 
+
+@app.post("/api/v1/kettle/set-temp")
+async def set_temp(temp: SetTempRequest):
+    
+    is_succeses = await kettle_client.send_temp(temp.target_temp)
+    
+    if is_succeses:
+        return {"success": True}
+    else:
+        raise HTTPException(status_code=503, detail="Чайник недоступен или вернул ошибку")
+    
+    
+@app.post("/api/v1/kettle/stop")
+async def stop_kettle():
+    answer = await kettle_client.stop()    
+    if answer:
+        return {"success": True}
+    else:
+        raise HTTPException(status_code=503, detail="Чайник недоступен или вернул ошибку")
+        
+    
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
