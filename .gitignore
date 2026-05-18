@@ -184,3 +184,5 @@ pyrightconfig.json
 .vscode
 run.sh
 test_script.py
+local_start.sh
+start.sh

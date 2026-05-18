@@ -1,16 +1,16 @@
-import logging
+from loguru import logger
 from miio import Device, DeviceException
 import asyncio
 from .schemas import KettleState
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 
 class KettleClient():
     def __init__(self, ip: str, token: str):
         self._kettle = Device(ip=ip, token=token)
+        self._cancel_spam = False
 
 
     def _get_status_sync(self):
@@ -24,9 +24,10 @@ class KettleClient():
 
     async def get_state(self) -> KettleState | None:
         for i in range(3):
+            current_timeout = 5.0 if i == 0 else 2.0 
             try:
-                print("Запрашиваем статус...")
-                async with asyncio.timeout(1.5):
+                logger.debug("Запрашиваем статус...")
+                async with asyncio.timeout(current_timeout):
                     raw_answer = await asyncio.to_thread(self._get_status_sync)
 
                 
@@ -82,8 +83,9 @@ class KettleClient():
     
     async def send_temp(self, target_temp: int) -> bool:
         for i in range(3):
+            current_timeout = 5.0 if i == 0 else 2.0 
             try:
-                async with asyncio.timeout(3):
+                async with asyncio.timeout(current_timeout):
                     answer = await asyncio.to_thread(self._send_temp_sync, target_temp)
                 
                 is_success = True
@@ -119,8 +121,9 @@ class KettleClient():
     
     async def stop(self) -> bool:
         for i in range(3):
+            current_timeout = 5.0 if i == 0 else 2.0 
             try:
-                async with asyncio.timeout(3):
+                async with asyncio.timeout(current_timeout):
                     answer = await asyncio.to_thread(self._stop_sync)
                     
                 if answer["code"] == 0:
@@ -143,5 +146,21 @@ class KettleClient():
             logger.error(f"Не удалось отправить запрос за 3 попытки")
             return False
                       
-
+                      
+                      
+    async def spam_kettle_worker(self):
+        self._cancel_spam = False
+        
+        for i in range(100):
+            if self._cancel_spam:
+                logger.info(f"Спам остановлен на {i} итерации")
+                break
+            
                     
+            try:
+                await self.stop()
+            except Exception as e:
+                logger.error(f"Ошибка в спам-цикле: {e}")    
+            
+            await asyncio.sleep(0.6)
+                
