@@ -63,6 +63,7 @@ class KettleClient():
                 logger.exception(f"Неизвестная ошибка {e}")
         else:
             logger.error(f"🔴Чайник не отвечает!!!")
+            return None
      
             
     def _is_night(self) -> bool:

@@ -3,6 +3,33 @@ from config import settings
 from loguru import logger
 
 
+async def _get_state(session: aiohttp.ClientSession) -> dict | None: 
+    url = f"{settings.API_BASE_URL}/api/v1/kettle/status"
+    
+    try: 
+        async with session.get(url=url,) as response:
+            response.raise_for_status()
+            result = await response.json()
+            logger.info(f"У чайника запросили информацию с датчиков. Ответ API {result}")
+            return result
+        
+    except aiohttp.ClientResponseError as e:
+        # если вернули 400,404,500 и т.д.
+        logger.error(f"Ошибка API (статус {e.status}): {e.message}")
+        return None
+    
+    except aiohttp.ClientError as e:
+        # если сервер недоступен (например упал fastapi)
+        logger.error(f"Ошибка соединения с сервером: {e}")
+        return None
+        
+    except Exception as e:
+        # всякие остальные случаи
+        logger.error(f"Непредвиденная ошибка в _get_state: {e}")
+        return None
+    
+
+
 
 async def _boil(session: aiohttp.ClientSession, temp: int) -> dict:    
     url = f"{settings.API_BASE_URL}/api/v1/kettle/set-temp"
