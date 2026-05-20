@@ -64,6 +64,34 @@ class KettleClient():
         else:
             logger.error(f"🔴Чайник не отвечает!!!")
             return None
+    
+    
+    async def predict_heating_time(self, target_temp: int) -> dict:
+        state = await self.get_state()
+        
+        if state is None:
+            logger.warning("Невозможно расчитать время, чайник не отвечает")
+            return {"success": False}
+        
+        current_temp = state.current_temp
+        
+        if current_temp >= target_temp:
+            return {"success": True, "predict_time": 0}
+        
+        v_max = 0.203 #Heating rate(degrees per second)
+        c_start = 15 #Seconds lost during initial warmup
+        
+        delta_t = target_temp - current_temp
+        base_time = delta_t / v_max
+        
+        if current_temp < 45:
+            total_time = base_time + c_start
+        else:
+            total_time = base_time
+        
+        return {"success": True, "predict_time": int(total_time)}      
+        
+        
      
             
     def _is_night(self) -> bool:

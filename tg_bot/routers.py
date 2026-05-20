@@ -20,7 +20,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
 
 
 @rout.message(Command("status"))
-async def stop_boil(message: types.Message, aio_session: aiohttp.ClientSession):
+async def get_state(message: types.Message, aio_session: aiohttp.ClientSession):
     processing_msg = await message.answer("Получаю данные с датчиков..")
     response_dict = await _get_state(session=aio_session)
     
@@ -32,7 +32,7 @@ async def stop_boil(message: types.Message, aio_session: aiohttp.ClientSession):
     status_text = response_dict["status"]
     
     text = (
-        f"☕ <b>Статус чайника:</b>\n\n"
+        "☕ <b>Статус чайника:</b>\n\n"
         f"<b>Текущая температура:</b> {current_temp}°C\n"
         f"<b>Состояние:</b> {status_text}"
     )
@@ -49,7 +49,7 @@ async def stop_boil(message: types.Message, aio_session: aiohttp.ClientSession):
     response = await _stop_boil(session=aio_session)
     
     if response.get('success'):
-        await processing_msg.edit_text(f"Нагрев отменен успешно")
+        await processing_msg.edit_text("Нагрев отменен успешно")
     else:
-        await processing_msg.edit_text(f"Нагрев не удалось отменить. Попробуйте еще раз")
+        await processing_msg.edit_text("Нагрев не удалось отменить. Попробуйте еще раз")
 

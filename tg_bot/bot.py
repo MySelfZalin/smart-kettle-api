@@ -46,7 +46,7 @@ dp.include_routers(rout, boil_router)
 #====================================================================
 
 async def on_startup(dispatcher: Dispatcher):
-    timeout = aiohttp.ClientTimeout(total=5)
+    timeout = aiohttp.ClientTimeout(total=12)
     
     dispatcher["aio_session"] = aiohttp.ClientSession(timeout=timeout)
     logger.info("Сессия для FastAPI создана")   

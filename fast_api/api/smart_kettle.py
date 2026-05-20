@@ -24,10 +24,19 @@ async def get_kettle_status():
 @kettle_router.post("/set-temp")
 async def set_temp(temp: SetTempRequest):
     
-    is_succeses = await kettle_client.send_temp(temp.target_temp)
+    is_success = await kettle_client.send_temp(temp.target_temp)
     
-    if is_succeses:
-        return {"success": True}
+    if is_success:
+        predict_resp = await kettle_client.predict_heating_time(target_temp=temp.target_temp)
+        
+        if predict_resp.get('success'):
+            p_time = predict_resp.get("predict_time")
+            if p_time == 0:
+                return {"success": True, "already_hot": True, "predict_time": 0}
+            else:
+                return {"success": True, "already_hot": False, "predict_time": p_time}  
+        else:
+            return {"success": True, "already_hot": False, "predict_time": None}
     else:
         raise HTTPException(status_code=503, detail="Чайник недоступен или вернул ошибку")
     
@@ -51,3 +60,16 @@ async def start_spam(background_tasks: BackgroundTasks):
 async def stop_spam():
     kettle_client._cancel_spam = True
     return {"success": True, "message": "Остановка принята"}   
+
+
+@kettle_router.get("/heating-time")
+async def get_kettle_heating_time(target_temp: int) -> dict:
+    response = await kettle_client.predict_heating_time(target_temp=target_temp) 
+    if response is None:
+        return {"success": False}
+        
+    return {
+        "success": True,
+        "current_temp": response["current_temp"],
+        "predict_time": response["predict_time"]
+    }

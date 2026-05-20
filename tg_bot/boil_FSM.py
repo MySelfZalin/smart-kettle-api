@@ -34,15 +34,31 @@ async def process_temp(message: Message, state: FSMContext, aio_session: aiohttp
     if 40 <= input_num <= 99:
         processing_msg = await message.answer("Включаю чайник..")
         response = await _boil(session=aio_session, temp=input_num)
-        if response.get('success') == True:
-            await processing_msg.edit_text(f"Отлично, чайник включил нагрев до {input_num}",reply_markup=stop_boil_kb)
+        
+        if response.get('success'):
+            already_hot = response.get('already_hot')
+            predict_time = response.get('predict_time')
+            
+            if already_hot:
+                text = f"Текущая температура чайника уже {input_num}°C или выше! Нагрев не требуется"
+                await processing_msg.edit_text(text)
+            
+            elif predict_time is not None:
+                text = f"Отлично, чайник включил нагрев до {input_num}°C.\n Примерное время закипания: <b>{predict_time} с.</b>"
+                await processing_msg.edit_text(text, reply_markup=stop_boil_kb)
+            
+            else:
+                text = f"Отлично, чайник включил нагрев до {input_num}°C.\n<i>(Расчет времени недоступен)</i>"
+                await processing_msg.edit_text(text, reply_markup=stop_boil_kb)    
+
+
             await state.clear()
         else:
             await processing_msg.edit_text(f"Чайнику не удалось включить нагрев. Попробуйте еще раз")
             return  
     else:
         logger.warning(f"Пользователь вводит чтото странное, у него желаемая температуру {input_num}")
-        await message.reply(f"Число желаемой температуры должно быть строго от 40 до 99", reply_markup=cancel_kb) #правда поставить на температуру от 90+ пока что не выйдет и будет 100С 
+        await message.reply(f"Число желаемой температуры должно быть строго от 40 до 99", reply_markup=cancel_kb) #TODO реализовать механизм нагревания от 90 до 99
         
         
 @boil_router.callback_query(F.data == "cancel_fsm_boil") 
@@ -61,6 +77,6 @@ async def stop_boil_callback_handler(callback: CallbackQuery, aio_session: aioht
     await callback.message.edit_text("Выключаю чайник")
     response = await _stop_boil(session=aio_session)
     if response.get('success'):
-        await callback.message.edit_text(f"Нагрев отменен успешно")
+        await callback.message.edit_text("Нагрев отменен успешно")
     else:
-        await callback.message.edit_text(f"Нагрев не удалось отменить. Попробуйте еще раз")      
+        await callback.message.edit_text("Нагрев не удалось отменить. Попробуйте еще раз")      
