@@ -70,6 +70,5 @@ async def get_kettle_heating_time(target_temp: int) -> dict:
         
     return {
         "success": True,
-        "current_temp": response["current_temp"],
         "predict_time": response["predict_time"]
     }
