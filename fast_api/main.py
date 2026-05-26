@@ -5,6 +5,7 @@ import sys
 from loguru import logger
 from fast_api.api.smart_kettle import kettle_router
 from fast_api.api.yandex_auth import yandex_auth_router
+from fast_api.api.yandex_smarthome import yandex_smarthome_router
 
 
 class InterceptHandler(logging.Handler):
@@ -32,6 +33,7 @@ app = FastAPI(title="Smart-Kettle API")
 
 app.include_router(kettle_router)
 app.include_router(yandex_auth_router)
+app.include_router(yandex_smarthome_router)
 
 
 @app.get("/")

@@ -5,6 +5,9 @@ class Settings(BaseSettings):
     KETTLE_TOKEN : str
     BOT_TOKEN : str
     API_BASE_URL : str
+    KETTLE_USERNAME : str
+    KETTLE_PASSWORD : str
+    JWT_SECRET : str
     
     model_config = SettingsConfigDict(
         env_file=".env", 

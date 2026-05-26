@@ -5,7 +5,7 @@ from devices.schemas import KettleState, SetTempRequest
 
 kettle_router = APIRouter(
     prefix="/api/v1/kettle",
-    tags=["Smart Kettle"]
+    tags=["Control Kettle"]
 )
 
 kettle_client = KettleClient(ip=settings.KETTLE_IP, token=settings.KETTLE_TOKEN)
