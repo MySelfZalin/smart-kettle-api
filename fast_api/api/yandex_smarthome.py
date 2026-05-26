@@ -95,7 +95,7 @@ async def query_devices(
                         {
                             "type": "devices.capabilities.on_off",
                             "state": {
-                                "instance": "on_off",
+                                "instance": "on",
                                 "value": is_on
                             }
                         },
