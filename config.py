@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     KETTLE_USERNAME : str
     KETTLE_PASSWORD : str
     JWT_SECRET : str
+    ADMIN_ID : int
     
     model_config = SettingsConfigDict(
         env_file=".env", 

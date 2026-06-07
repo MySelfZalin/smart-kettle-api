@@ -52,4 +52,8 @@ async def stop_boil(message: types.Message, aio_session: aiohttp.ClientSession):
         await processing_msg.edit_text("Нагрев отменен успешно")
     else:
         await processing_msg.edit_text("Нагрев не удалось отменить. Попробуйте еще раз")
-
+        
+@rout.message(Command("my_id"))        
+async def get_TGid(message: types.Message):
+    id = message.from_user.id
+    await message.answer(f"твой айди {id}")

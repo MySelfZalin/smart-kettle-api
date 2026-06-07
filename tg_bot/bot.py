@@ -2,8 +2,10 @@ import asyncio
 import logging
 import aiohttp
 import sys
+from typing import Callable, Dict, Any, Awaitable
 from loguru import logger
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, BaseMiddleware
+from aiogram.types import TelegramObject
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -42,6 +44,25 @@ bot = Bot(token=settings.BOT_TOKEN, session=session, default=default_settings) #
 
 dp = Dispatcher()
 dp.include_routers(rout, boil_router)
+
+
+
+class AdminOnlyMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
+        user = data.get("event_from_user")
+        
+        if user is not None and user.id == int(settings.ADMIN_ID):
+            return await handler(event, data)
+        
+
+        if user:
+            logger.warning(f"Попытка доступа от неизвестного - id: {user.id}, юзер: {user.full_name}")
+        return
    
 #====================================================================
 
@@ -62,6 +83,7 @@ async def main():
     logger.info("Запуск Telegram бота")
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
+    dp.update.middleware(AdminOnlyMiddleware())
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands(commands=commands_list, scope=types.BotCommandScopeAllPrivateChats())
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
