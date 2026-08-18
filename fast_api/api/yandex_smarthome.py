@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Header, HTTPException
 from typing import Annotated
+from fastapi.params import Depends
+from loguru import logger
+
 from fast_api.api.smart_kettle import kettle_client
+from fast_api.api.jwt_check import verify_jwt
 
 
 
@@ -15,8 +19,11 @@ yandex_smarthome_router = APIRouter(
 
 @yandex_smarthome_router.get("/user/devices")
 async def get_devices(
-    x_request_id: Annotated[str, Header(alias="X-Request-Id")]
+    x_request_id: Annotated[str, Header(alias="X-Request-Id")],
+    payload: dict = Depends(verify_jwt),
 ):
+    user_id = payload.get("sub", "unknown")
+    logger.info(f"[{user_id}] запросил список устройств (X-Request-Id: {x_request_id})")
     return {
         "request_id": x_request_id,
         "payload": {
@@ -75,8 +82,12 @@ async def get_devices(
 
 @yandex_smarthome_router.post("/user/devices/query")
 async def query_devices(
-    x_request_id: Annotated[str, Header(alias="X-Request-Id")]
+    x_request_id: Annotated[str, Header(alias="X-Request-Id")],
+    payload: dict = Depends(verify_jwt),
 ):
+    user_id = payload.get("sub", "unknown")
+    logger.info(f"[{user_id}] запросил состояние устройств (X-Request-Id: {x_request_id})")
+
     state = await kettle_client.get_state()
     
     if state is None:
@@ -126,8 +137,12 @@ async def query_devices(
 @yandex_smarthome_router.post("/user/devices/action")
 async def handle_action(
     request_data: dict,
-    x_request_id: Annotated[str, Header(alias="X-Request-Id")]
+    x_request_id: Annotated[str, Header(alias="X-Request-Id")],
+    payload: dict = Depends(verify_jwt),
 ):
+    user_id = payload.get("sub", "unknown")
+    logger.info(f"[{user_id}] шлёт action (X-Request-Id: {x_request_id}): {request_data}")
+
     response_capabilities = []
     
     devices = request_data.get("payload", {}).get("devices", [])
