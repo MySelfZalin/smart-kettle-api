@@ -1,8 +1,10 @@
 import time
+import secrets
 import jwt
 from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from config import settings
+from fast_api.api.oauth_store import code_store
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from typing import Annotated
@@ -35,21 +37,24 @@ async def login(
     state: Annotated[str, Form()]
 ):
     
-    if username != settings.KETTLE_USERNAME or password != settings.KETTLE_PASSWORD:
+    username_ok = secrets.compare_digest(username, settings.KETTLE_USERNAME)
+    password_ok = secrets.compare_digest(password, settings.KETTLE_PASSWORD)
+
+    if not (username_ok and password_ok):
         return templates.TemplateResponse(
             request=request,
             name="login.html",
             context={
-                "redirect_uri": redirect_uri, 
-                "state": state, 
+                "redirect_uri": redirect_uri,
+                "state": state,
                 "error": "Неверный логин или пароль, попробуйте еще раз"
             }
         )
 
-    code = "AuthCodedm4o66NNSkegl5j6xlkf3652cs34421"
+    code = code_store.issue()
     redirect_url = f"{redirect_uri}?state={state}&code={code}"
-    
-    return RedirectResponse(url=redirect_url, status_code=302)\
+
+    return RedirectResponse(url=redirect_url, status_code=302)
 
 
 @yandex_auth_router.post("/token")
@@ -60,8 +65,8 @@ async def get_token(
     client_secret: Annotated[str, Form()] = None,
 ):
     if grant_type == "authorization_code":
-        if code != "AuthCodedm4o66NNSkegl5j6xlkf3652cs34421":
-            raise HTTPException(status_code=400, detail="Неверный код авторизации")
+        if not code_store.consume(code or ""):
+            raise HTTPException(status_code=400, detail="Неверный или просроченный код авторизации")
         
     payload = {
         "sub": "admin",
