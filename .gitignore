@@ -187,3 +187,8 @@ test_script.py
 local_start.sh
 start.sh
 tempCodeRunnerFile.py
+.code-review-graph/
+.claude/
+CLAUDE.md
+.mcp.json
+.claudeignore
