@@ -37,10 +37,15 @@ default_settings = DefaultBotProperties(
     link_preview_prefer_small_media=True
 )
 
-session = AiohttpSession(proxy="http://127.0.0.1:10809") #обход блокировки при помощи xray vpn
-bot = Bot(token=settings.BOT_TOKEN, session=session, default=default_settings) #с vpn
-
-# bot = Bot(token=settings.BOT_TOKEN, default=default_settings) #без впн-а
+# прокси для обхода блокировки Telegram (например xray: http://127.0.0.1:10809)
+# если в .env нету PROXY_URL или == None,то бот работает без прокси
+if settings.PROXY_URL:
+    session = AiohttpSession(proxy=settings.PROXY_URL)
+    bot = Bot(token=settings.BOT_TOKEN, session=session, default=default_settings)
+    logger.info(f"Бот запущен через прокси: {settings.PROXY_URL}")
+else:
+    bot = Bot(token=settings.BOT_TOKEN, default=default_settings)
+    logger.info("Бот запущен без прокси")
 
 dp = Dispatcher()
 dp.include_routers(rout, boil_router)
@@ -55,10 +60,10 @@ class AdminOnlyMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
         user = data.get("event_from_user")
-        
-        if user is not None and user.id == int(settings.ADMIN_ID):
+
+        if user is not None and (settings.ADMIN_ID is None or user.id in settings.ADMIN_ID):
             return await handler(event, data)
-        
+
 
         if user:
             logger.warning(f"Попытка доступа от неизвестного - id: {user.id}, юзер: {user.full_name}")
