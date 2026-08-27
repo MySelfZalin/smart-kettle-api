@@ -12,7 +12,7 @@
 
 ## 🏗 Архитектура проекта
 <div align="center">
-  <img src="https://i.imgur.com/TasegnV.jpeg" alt="Схема интеграции чайника с Алисой" width="700">
+  <img src="https://i.imgur.com/FA28nH5.png" alt="Схема интеграции чайника с Алисой" width="700">
 </div>
 
 ## 🚀 Основные технические решения
