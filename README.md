@@ -7,7 +7,9 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)
 ![Telegram](https://img.shields.io/badge/Telegram%20Bot-Aiogram%203-26A5E4)
+![Ruff](https://github.com/MySelfZalin/smart-kettle-api/actions/workflows/ruff.yml/badge.svg)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
 
 
 ---
