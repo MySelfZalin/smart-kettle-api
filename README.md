@@ -3,6 +3,13 @@
 
 
 ### Локальный мост для интеграции чайника Xiaomi Kettle 2 Pro (предназначенный для китайского рынка) в умный дом Яндекса (Алису) ###
+
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi)
+![Telegram](https://img.shields.io/badge/Telegram%20Bot-Aiogram%203-26A5E4)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+
 ---
 ### 🎯 Решаемая проблема
 Проект решает проблему региональных ограничений:
