@@ -10,8 +10,6 @@
 ![Ruff](https://github.com/MySelfZalin/smart-kettle-api/actions/workflows/ruff.yml/badge.svg)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-
-
 ---
 ## 🎯 Решаемая проблема
 Чайник привязан к китайскому региону Mi Home, из-за этого Алиса его не видит. Проект подключает его напрямую:
