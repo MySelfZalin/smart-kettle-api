@@ -100,7 +100,7 @@ class KettleClient():
         is_quiet = settings.is_quiet_hours()
         payload = [
             {"did": "set_temp", "siid": 2, "piid": 4, "value": target_temp},
-            {"did": "set_sound", "siid": 6, "piid": 1, "value": is_now_night}
+            {"did": "set_sound", "siid": 6, "piid": 1, "value": is_quiet}
                ]
         return self._kettle.send("set_properties", payload)
     
@@ -139,8 +139,16 @@ class KettleClient():
     
     
     def _stop_sync(self):
-        payload = {"did": "stop_kettle", "siid": 3, "aiid": 1, "in": []}
-        return self._kettle.send("action", payload)
+        is_quiet = settings.is_quiet_hours()
+
+
+        self._kettle.send(
+            "set_properties",
+            [{"did": "set_sound", "siid": 6, "piid": 1, "value": is_quiet}],
+        )
+        return self._kettle.send(
+            "action", {"did": "stop_kettle", "siid": 3, "aiid": 1, "in": []}
+        )
     
     async def stop(self) -> bool:
         for i in range(3):
