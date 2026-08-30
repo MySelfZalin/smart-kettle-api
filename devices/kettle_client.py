@@ -2,7 +2,7 @@ from loguru import logger
 from miio import Device, DeviceException
 import asyncio
 from .schemas import KettleState
-from datetime import datetime
+from config import settings
 
 
 
@@ -94,16 +94,10 @@ class KettleClient():
         
      
             
-    def _is_night(self) -> bool:
-        hour = datetime.now().hour
-        if hour >= 23 or hour < 11:
-            return True
-        else:
-            return False
      
                 
     def _send_temp_sync(self, target_temp: int):
-        is_now_night = self._is_night()
+        is_quiet = settings.is_quiet_hours()
         payload = [
             {"did": "set_temp", "siid": 2, "piid": 4, "value": target_temp},
             {"did": "set_sound", "siid": 6, "piid": 1, "value": is_now_night}

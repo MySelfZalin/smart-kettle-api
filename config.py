@@ -1,4 +1,6 @@
 from typing import Optional
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
@@ -12,6 +14,9 @@ class Settings(BaseSettings):
     JWT_SECRET : str
     ADMIN_ID : Optional[set[int]] = None
     PROXY_URL : Optional[str] = None
+    QUIET_MODE_START : str = "23:00:00"
+    QUIET_MODE_END : str = "11:00:00"
+    QUIET_MODE_TIMEZONE : str = "Europe/Moscow"
     
     model_config = SettingsConfigDict(
             env_file=".env",
@@ -40,7 +45,32 @@ class Settings(BaseSettings):
             return None
         return value
 
-    
+    @field_validator("QUIET_MODE_START", "QUIET_MODE_END")
+    @classmethod
+    def parse_quiet_time(cls, value):
+        try:
+            hours, minutes, seconds = (int(part) for part in value.split(":"))
+            return time(hours, minutes, seconds).isoformat()
+        except (AttributeError, ValueError) as e:
+            raise ValueError(f"ожидается время в формате ЧЧ:ММ:СС, получено: {value!r}") from e
 
-settings = Settings()    
+    @field_validator("QUIET_MODE_TIMEZONE")
+    @classmethod
+    def validate_quiet_timezone(cls, value):
+        try:
+            ZoneInfo(value)
+        except Exception as e:
+            raise ValueError(f"неизвестная таймзона: {value}") from e
+        return value
+
+    def is_quiet_hours(self) -> bool:
+        now = datetime.now(ZoneInfo(self.QUIET_MODE_TIMEZONE)).time()
+        start = time.fromisoformat(self.QUIET_MODE_START)
+        end = time.fromisoformat(self.QUIET_MODE_END)
+        if start <= end:
+            return start <= now < end
+        return now >= start or now < end
+
+
+settings = Settings()
     
