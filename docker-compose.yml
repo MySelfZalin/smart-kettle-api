@@ -1,0 +1,52 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      TZ: Europe/Moscow
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  bot:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://127.0.0.1:6379/0
+      API_BASE_URL: http://127.0.0.1:8000
+      PROXY_URL: http://127.0.0.1:10809
+      TZ: Europe/Moscow
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["python", "-m", "tg_bot.bot"]
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  redis-data:

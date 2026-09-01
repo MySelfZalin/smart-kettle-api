@@ -56,11 +56,29 @@ python -m fast_api.main   # API
 python -m tg_bot.bot      # Telegram
 ```
 
+## 🐳 Запуск через Docker Compose
+
+> [!IMPORTANT]
+> Требуются Docker и Docker Compose.
+
+```bash
+# Конфиг из шаблона - токены Mi, ADMIN_ID, прокси
+cp .env.example .env
+docker compose up -d --build
+```
+
+- Compose запускает API, Telegram-бота и Redis.
+
+```bash
+# Для остановки контейнера
+docker compose down
+```
+
 ## 🚧 Roadmap
 
 В ближайших планах по развитию:
 
-* [ ] **Перенос OAuth-кодов в Redis:** Сейчас одноразовые коды хранятся в памяти (сбрасываются при перезапуске). Планируется хранение сессий в **Redis**.
+* [x] **Перенос OAuth-кодов в Redis:** при заданном `REDIS_URL` используются Redis-коды и refresh-токены; без него остаётся in-memory режим для локальной разработки.
 * [ ] **Графики в Telegram:** Команда `/graphics` уже заявлена в боте, но сама отрисовка графиков ещё в разработке.
 * [ ] **Сбор метрик и дашборды:** Подключение **InfluxDB** для хранения данных о температуре воды и вывод красивых графиков остывания/нагрева в **Grafana**.
 * [ ] **Docker:** Упаковка всего в Docker для поднятия всего (API, Bot, Redis, Influx) одной командой.

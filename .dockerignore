@@ -1,0 +1,17 @@
+.env
+.env.example
+.claude/
+.venv/
+.git/
+.github/
+.code-review-graph/
+__pycache__/
+*.pyc
+*.log
+.claudeignore
+.mcp.json
+LICENSE
+README.md
+remote_start
+start.sh
+docs/
