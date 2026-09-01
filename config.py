@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     JWT_SECRET : str
     ADMIN_ID : Optional[set[int]] = None
     PROXY_URL : Optional[str] = None
+    REDIS_URL : Optional[str] = None
     QUIET_MODE_START : str = "23:00:00"
     QUIET_MODE_END : str = "11:00:00"
     QUIET_MODE_TIMEZONE : str = "Europe/Moscow"
