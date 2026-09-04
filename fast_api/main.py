@@ -32,7 +32,7 @@ class InterceptHandler(logging.Handler):
 
 logger.remove()
 logger.add(sys.stderr, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
-logger.add("api.log", rotation="5 MB", retention="10 days", encoding="utf-8", level="INFO")
+logger.add("/app/logs/api.log", rotation="5 MB", retention="10 days", encoding="utf-8", level="INFO")
 #================================================
 
 security = HTTPBasic()

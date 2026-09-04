@@ -12,6 +12,8 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
       interval: 10s
@@ -33,15 +35,18 @@ services:
       api:
         condition: service_healthy
     command: ["python", "-m", "tg_bot.bot"]
+    volumes:
+      - ./logs:/app/logs
 
   redis:
     image: redis:7.4-alpine
     restart: unless-stopped
     environment:
       TZ: Europe/Moscow
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["sh", "-c", "redis-server --appendonly yes 2>&1 | tee -a /logs/redis.log"]
     volumes:
       - redis-data:/data
+      - ./logs:/logs
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
