@@ -10,7 +10,6 @@ security = HTTPBearer(auto_error=False)
 
 def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
 
-
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -19,7 +18,6 @@ def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) ->
         )
 
     token = credentials.credentials
-
 
     try:
         payload = jwt.decode(
@@ -39,7 +37,6 @@ def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) ->
             detail=f"Невалидный токен: {e}",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
 
     if payload.get("exp") and payload["exp"] < time.time():
         raise HTTPException(

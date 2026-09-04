@@ -6,7 +6,7 @@ from threading import Lock
 
 class InMemoryOAuthStore:
     AUTH_CODE_TTL_SECONDS = 180
-    REFRESH_TOKEN_TTL_SECONDS = 2592000 # 30 * 24 * 60 * 60
+    REFRESH_TOKEN_TTL_SECONDS = 2592000  # 30 * 24 * 60 * 60
 
     def __init__(self) -> None:
         self._codes: dict[str, float] = {}
@@ -56,9 +56,7 @@ class InMemoryOAuthStore:
     def _purge_expired_locked(self) -> None:
         now = time.time()
         self._codes = {code: exp for code, exp in self._codes.items() if exp >= now}
-        self._refresh_tokens = {
-            token: record for token, record in self._refresh_tokens.items() if record[1] >= now
-        }
+        self._refresh_tokens = {token: record for token, record in self._refresh_tokens.items() if record[1] >= now}
 
 
 class RedisOAuthStore:

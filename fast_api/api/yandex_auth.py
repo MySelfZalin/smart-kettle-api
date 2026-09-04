@@ -12,10 +12,7 @@ from config import settings
 from fast_api.api.oauth_store import create_oauth_store
 
 
-yandex_auth_router = APIRouter(
-    prefix="/auth/yandex",
-    tags=["Yandex Authentication"]
-)
+yandex_auth_router = APIRouter(prefix="/auth/yandex", tags=["Yandex Authentication"])
 
 templates = Jinja2Templates(directory="fast_api/api/templates")
 code_store = create_oauth_store(settings.REDIS_URL)
@@ -43,9 +40,7 @@ async def authorize(client_id: str, response_type: str, redirect_uri: str, state
         raise HTTPException(status_code=400, detail="; ".join(errors))
 
     return templates.TemplateResponse(
-        request=request,
-        name="login.html",
-        context={"redirect_uri": redirect_uri, "state": state}
+        request=request, name="login.html", context={"redirect_uri": redirect_uri, "state": state}
     )
 
 
@@ -55,7 +50,7 @@ async def login(
     username: Annotated[str, Form()],
     password: Annotated[str, Form()],
     redirect_uri: Annotated[str, Form()],
-    state: Annotated[str, Form()]
+    state: Annotated[str, Form()],
 ):
     username_ok = secrets.compare_digest(username, settings.KETTLE_USERNAME)
     password_ok = secrets.compare_digest(password, settings.KETTLE_PASSWORD)
@@ -67,8 +62,8 @@ async def login(
             context={
                 "redirect_uri": redirect_uri,
                 "state": state,
-                "error": "Неверный логин или пароль, попробуйте еще раз"
-            }
+                "error": "Неверный логин или пароль, попробуйте еще раз",
+            },
         )
 
     code = code_store.issue()

@@ -30,11 +30,8 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
-
 default_settings = DefaultBotProperties(
-    parse_mode=ParseMode.HTML,
-    protect_content=False,
-    link_preview_prefer_small_media=True
+    parse_mode=ParseMode.HTML, protect_content=False, link_preview_prefer_small_media=True
 )
 
 # прокси для обхода блокировки Telegram (например xray: http://127.0.0.1:10809)
@@ -51,37 +48,36 @@ dp = Dispatcher()
 dp.include_routers(rout, boil_router)
 
 
-
 class AdminOnlyMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any]
+        data: Dict[str, Any],
     ) -> Any:
         user = data.get("event_from_user")
 
         if user is not None and (settings.ADMIN_ID is None or user.id in settings.ADMIN_ID):
             return await handler(event, data)
 
-
         if user:
             logger.warning(f"Попытка доступа от неизвестного - id: {user.id}, юзер: {user.full_name}")
         return
-   
-#====================================================================
+
+
+# ====================================================================
+
 
 async def on_startup(dispatcher: Dispatcher):
     timeout = aiohttp.ClientTimeout(total=12)
-    
+
     dispatcher["aio_session"] = aiohttp.ClientSession(timeout=timeout)
-    logger.info("Сессия для FastAPI создана")   
-    
-    
+    logger.info("Сессия для FastAPI создана")
+
+
 async def on_shutdown(dispatcher: Dispatcher):
     session: aiohttp.ClientSession = dispatcher["aio_session"]
     await session.close()
-
 
 
 async def main():
@@ -94,11 +90,13 @@ async def main():
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
-
-if __name__ == "__main__":  
+if __name__ == "__main__":
     logger.remove()
-    logger.add(sys.stderr, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+    logger.add(
+        sys.stderr,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    )
     logger.add("/app/logs/bot.log", rotation="5 MB", retention="10 days", encoding="utf-8", level="INFO")
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO, force=True)
-    
-    asyncio.run(main())   
+
+    asyncio.run(main())

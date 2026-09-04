@@ -4,27 +4,24 @@ from zoneinfo import ZoneInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
+
 class Settings(BaseSettings):
-    KETTLE_IP : str
-    KETTLE_TOKEN : str
-    BOT_TOKEN : str
-    API_BASE_URL : str
-    KETTLE_USERNAME : str
-    KETTLE_PASSWORD : str
-    JWT_SECRET : str
-    ADMIN_ID : Optional[set[int]] = None
-    PROXY_URL : Optional[str] = None
-    REDIS_URL : Optional[str] = None
-    YANDEX_CLIENT_ID : Optional[str] = None
-    QUIET_MODE_START : str = "23:00:00"
-    QUIET_MODE_END : str = "11:00:00"
-    QUIET_MODE_TIMEZONE : str = "Europe/Moscow"
-    
-    model_config = SettingsConfigDict(
-            env_file=".env",
-            env_file_encoding="utf-8",
-            extra="ignore"
-        )
+    KETTLE_IP: str
+    KETTLE_TOKEN: str
+    BOT_TOKEN: str
+    API_BASE_URL: str
+    KETTLE_USERNAME: str
+    KETTLE_PASSWORD: str
+    JWT_SECRET: str
+    ADMIN_ID: Optional[set[int]] = None
+    PROXY_URL: Optional[str] = None
+    REDIS_URL: Optional[str] = None
+    YANDEX_CLIENT_ID: Optional[str] = None
+    QUIET_MODE_START: str = "23:00:00"
+    QUIET_MODE_END: str = "11:00:00"
+    QUIET_MODE_TIMEZONE: str = "Europe/Moscow"
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @field_validator("ADMIN_ID", mode="before")
     @classmethod
@@ -75,4 +72,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-    
