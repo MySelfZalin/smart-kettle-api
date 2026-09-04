@@ -22,8 +22,26 @@ code_store = create_oauth_store(settings.REDIS_URL)
 ACCESS_TOKEN_TTL_SECONDS = 3600
 
 
+YANDEX_BROKER_REDIRECT_URI = "https://social.yandex.net/broker/redirect"
+
+
 @yandex_auth_router.get("/authorize")
 async def authorize(client_id: str, response_type: str, redirect_uri: str, state: str, request: Request):
+    errors = []
+    if settings.YANDEX_CLIENT_ID is None:
+        errors.append("сервер не настроен: отсутствует YANDEX_CLIENT_ID")
+    elif client_id != settings.YANDEX_CLIENT_ID:
+        errors.append("неизвестный client_id")
+    if response_type != "code":
+        errors.append("response_type должен быть 'code'")
+    if redirect_uri != YANDEX_BROKER_REDIRECT_URI:
+        errors.append("redirect_uri не совпадает с адресом брокера Яндекса")
+    if not state:
+        errors.append("обязательный параметр state отсутствует")
+
+    if errors:
+        raise HTTPException(status_code=400, detail="; ".join(errors))
+
     return templates.TemplateResponse(
         request=request,
         name="login.html",
