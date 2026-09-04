@@ -1,11 +1,12 @@
-from aiogram import types, Router, F, html
-from aiogram.filters import CommandStart, Command
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.fsm.context import FSMContext
 import time
+
 import aiohttp
+from aiogram import Router, types
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
+
+from tg_bot.api_client import _get_state, _stop_boil
 from tg_bot.inline_kb import start_kb
-from tg_bot.api_client import _stop_boil, _get_state
 
 rout = Router()
 
@@ -23,7 +24,7 @@ async def get_state(message: types.Message, aio_session: aiohttp.ClientSession):
     response_dict = await _get_state(session=aio_session)
 
     if response_dict is None:
-        await processing_msg.edit_text(f"Не удалось получить данные. Попробуйте еще раз")
+        await processing_msg.edit_text("Не удалось получить данные. Попробуйте еще раз")
         return
 
     current_temp = response_dict["current_temp"]

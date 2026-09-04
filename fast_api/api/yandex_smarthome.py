@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Header, HTTPException
 from typing import Annotated
+
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.params import Depends
 from loguru import logger
 
-from fast_api.api.smart_kettle import kettle_client
 from fast_api.api.jwt_check import verify_jwt
-
+from fast_api.api.smart_kettle import kettle_client
 
 yandex_smarthome_router = APIRouter(prefix="/v1.0", tags=["Yandex smarthome"])
 
@@ -46,10 +46,16 @@ async def get_devices(
                         {
                             "type": "devices.properties.float",
                             "retrievable": True,
-                            "parameters": {"instance": "temperature", "unit": "unit.temperature.celsius"},
+                            "parameters": {
+                                "instance": "temperature",
+                                "unit": "unit.temperature.celsius",
+                            },
                         }
                     ],
-                    "device_info": {"manufacturer": "Xiaomi", "model": "Kettle Kettle 2 Pro"},
+                    "device_info": {
+                        "manufacturer": "Xiaomi",
+                        "model": "Kettle Kettle 2 Pro",
+                    },
                 }
             ],
         },
@@ -78,7 +84,10 @@ async def query_devices(
                 {
                     "id": "my_smart_kettle",
                     "capabilities": [
-                        {"type": "devices.capabilities.on_off", "state": {"instance": "on", "value": is_on}},
+                        {
+                            "type": "devices.capabilities.on_off",
+                            "state": {"instance": "on", "value": is_on},
+                        },
                         {
                             "type": "devices.capabilities.range",
                             "state": {"instance": "temperature", "value": state.target},
@@ -87,7 +96,10 @@ async def query_devices(
                     "properties": [
                         {
                             "type": "devices.properties.float",
-                            "state": {"instance": "temperature", "value": state.current_temp},
+                            "state": {
+                                "instance": "temperature",
+                                "value": state.current_temp,
+                            },
                         }
                     ],
                 }
@@ -134,7 +146,10 @@ async def handle_action(
                 action_result = {"status": "ERROR", "error_code": "DEVICE_UNREACHABLE"}
 
             response_capabilities.append(
-                {"type": cap_type, "state": {"instance": instance, "action_result": action_result}}
+                {
+                    "type": cap_type,
+                    "state": {"instance": instance, "action_result": action_result},
+                }
             )
 
     return {

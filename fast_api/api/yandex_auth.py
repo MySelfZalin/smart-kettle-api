@@ -5,12 +5,11 @@ from urllib.parse import urlencode
 
 import jwt
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from config import settings
 from fast_api.api.oauth_store import create_oauth_store
-
 
 yandex_auth_router = APIRouter(prefix="/auth/yandex", tags=["Yandex Authentication"])
 
@@ -23,7 +22,9 @@ YANDEX_BROKER_REDIRECT_URI = "https://social.yandex.net/broker/redirect"
 
 
 @yandex_auth_router.get("/authorize")
-async def authorize(client_id: str, response_type: str, redirect_uri: str, state: str, request: Request):
+async def authorize(
+    client_id: str, response_type: str, redirect_uri: str, state: str, request: Request
+):
     errors = []
     if settings.YANDEX_CLIENT_ID is None:
         errors.append("сервер не настроен: отсутствует YANDEX_CLIENT_ID")
@@ -40,7 +41,9 @@ async def authorize(client_id: str, response_type: str, redirect_uri: str, state
         raise HTTPException(status_code=400, detail="; ".join(errors))
 
     return templates.TemplateResponse(
-        request=request, name="login.html", context={"redirect_uri": redirect_uri, "state": state}
+        request=request,
+        name="login.html",
+        context={"redirect_uri": redirect_uri, "state": state},
     )
 
 

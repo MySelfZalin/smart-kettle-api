@@ -1,6 +1,7 @@
 import aiohttp
-from config import settings
 from loguru import logger
+
+from config import settings
 
 
 async def _get_state(session: aiohttp.ClientSession) -> dict | None:

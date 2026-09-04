@@ -1,8 +1,11 @@
+import asyncio
+
 from loguru import logger
 from miio import Device, DeviceException
-import asyncio
-from .schemas import KettleState
+
 from config import settings
+
+from .schemas import KettleState
 
 
 class KettleClient:
@@ -45,18 +48,22 @@ class KettleClient:
                     elif item["siid"] == 3 and item["piid"] == 7:
                         is_lifting = item["value"]
 
-                return KettleState(current_temp=current, target=target, status_code=status_code, is_lifting=is_lifting)
+                return KettleState(
+                    current_temp=current,
+                    target=target,
+                    status_code=status_code,
+                    is_lifting=is_lifting,
+                )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Таймаут при отправке, попытка {i + 1} из 3")
                 await asyncio.sleep(0.25)
             except DeviceException as e:
                 logger.error(f"Ошибка протокола: {e}")
             except Exception as e:
                 logger.exception(f"Неизвестная ошибка {e}")
-        else:
-            logger.error(f"🔴Чайник не отвечает!!!")
-            return None
+        logger.error("🔴Чайник не отвечает!!!")
+        return None
 
     async def predict_heating_time(self, target_temp: int) -> dict:
         state = await self.get_state()
@@ -109,7 +116,7 @@ class KettleClient:
                     logger.error(f"Произошла ошибка {answer}")
                     return False
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Таймаут при отправке, попытка {i + 1} из 3")
                 await asyncio.sleep(0.25)
             except DeviceException as e:
@@ -118,9 +125,8 @@ class KettleClient:
             except Exception as e:
                 logger.exception(f"Неизвестная ошибка {e}")
                 return False
-        else:
-            logger.error(f"Не удалось отправить запрос за 3 попытки")
-            return False
+        logger.error("Не удалось отправить запрос за 3 попытки")
+        return False
 
     def _stop_sync(self):
         is_quiet = settings.is_quiet_hours()
@@ -144,7 +150,7 @@ class KettleClient:
                     logger.error(f"Произошла ошибка {answer}")
                     return False
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Таймаут при отправке, попытка {i + 1} из 3")
                 await asyncio.sleep(0.25)
             except DeviceException as e:
@@ -154,9 +160,8 @@ class KettleClient:
                 logger.exception(f"Неизвестная ошибка {e}")
                 return False
 
-        else:
-            logger.error(f"Не удалось отправить запрос за 3 попытки")
-            return False
+        logger.error("Не удалось отправить запрос за 3 попытки")
+        return False
 
     async def spam_kettle_worker(self):
         self._cancel_spam = False

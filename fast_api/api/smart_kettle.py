@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+
 from config import settings
 from devices.kettle_client import KettleClient
 from devices.schemas import KettleState, SetTempRequest

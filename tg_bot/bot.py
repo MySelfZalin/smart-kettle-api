@@ -1,18 +1,22 @@
 import asyncio
 import logging
-import aiohttp
 import sys
-from typing import Callable, Dict, Any, Awaitable
-from loguru import logger
-from aiogram import Bot, Dispatcher, types, BaseMiddleware
-from aiogram.types import TelegramObject
-from aiogram.client.session.aiohttp import AiohttpSession
+from collections.abc import Awaitable, Callable
+from typing import Any
+
+import aiohttp
+from aiogram import BaseMiddleware, Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
+from aiogram.types import TelegramObject
+from loguru import logger
+
 from config import settings
-from .routers import rout
+
 from .boil_FSM import boil_router
 from .constants import commands_list
+from .routers import rout
 
 
 class InterceptHandler(logging.Handler):
@@ -31,7 +35,9 @@ class InterceptHandler(logging.Handler):
 
 
 default_settings = DefaultBotProperties(
-    parse_mode=ParseMode.HTML, protect_content=False, link_preview_prefer_small_media=True
+    parse_mode=ParseMode.HTML,
+    protect_content=False,
+    link_preview_prefer_small_media=True,
 )
 
 # прокси для обхода блокировки Telegram (например xray: http://127.0.0.1:10809)
@@ -51,9 +57,9 @@ dp.include_routers(rout, boil_router)
 class AdminOnlyMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         user = data.get("event_from_user")
 
@@ -61,7 +67,9 @@ class AdminOnlyMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         if user:
-            logger.warning(f"Попытка доступа от неизвестного - id: {user.id}, юзер: {user.full_name}")
+            logger.warning(
+                f"Попытка доступа от неизвестного - id: {user.id}, юзер: {user.full_name}"
+            )
         return
 
 
@@ -96,7 +104,13 @@ if __name__ == "__main__":
         sys.stderr,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     )
-    logger.add("/app/logs/bot.log", rotation="5 MB", retention="10 days", encoding="utf-8", level="INFO")
+    logger.add(
+        "/app/logs/bot.log",
+        rotation="5 MB",
+        retention="10 days",
+        encoding="utf-8",
+        level="INFO",
+    )
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO, force=True)
 
     asyncio.run(main())

@@ -1,16 +1,18 @@
-import secrets
-import uvicorn
 import logging
+import secrets
 import sys
-from loguru import logger
-from fastapi import FastAPI, Depends, status, HTTPException
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from loguru import logger
+
+from config import settings
 from fast_api.api.smart_kettle import kettle_router
 from fast_api.api.yandex_auth import yandex_auth_router
 from fast_api.api.yandex_smarthome import yandex_smarthome_router
-from config import settings
 
 
 class InterceptHandler(logging.Handler):
@@ -33,7 +35,13 @@ logger.add(
     sys.stderr,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
 )
-logger.add("/app/logs/api.log", rotation="5 MB", retention="10 days", encoding="utf-8", level="INFO")
+logger.add(
+    "/app/logs/api.log",
+    rotation="5 MB",
+    retention="10 days",
+    encoding="utf-8",
+    level="INFO",
+)
 # ================================================
 
 security = HTTPBasic()

@@ -1,9 +1,10 @@
-import jwt
 import time
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from config import settings
 
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from config import settings
 
 security = HTTPBearer(auto_error=False)
 

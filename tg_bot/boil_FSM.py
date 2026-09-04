@@ -1,10 +1,11 @@
 import aiohttp
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
+
 from .api_client import _boil, _stop_boil
 from .inline_kb import cancel_kb, stop_boil_kb
 
@@ -20,7 +21,9 @@ boil_router = Router()
 
 @boil_router.message(Command("boil"))
 async def cmd_start_boil(message: Message, state: FSMContext):
-    await message.answer("Введите желаюмую температуру? (число от 40 до 99)", reply_markup=cancel_kb)
+    await message.answer(
+        "Введите желаюмую температуру? (число от 40 до 99)", reply_markup=cancel_kb
+    )
     await state.set_state(BoilKettleFSM.waiting_for_temp)
 
 
@@ -42,7 +45,9 @@ async def process_temp(message: Message, state: FSMContext, aio_session: aiohttp
             predict_time = response.get("predict_time")
 
             if already_hot:
-                text = f"Текущая температура чайника уже {input_num}°C или выше! Нагрев не требуется"
+                text = (
+                    f"Текущая температура чайника уже {input_num}°C или выше! Нагрев не требуется"
+                )
                 await processing_msg.edit_text(text)
 
             elif predict_time is not None:
@@ -55,12 +60,15 @@ async def process_temp(message: Message, state: FSMContext, aio_session: aiohttp
 
             await state.clear()
         else:
-            await processing_msg.edit_text(f"Чайнику не удалось включить нагрев. Попробуйте еще раз")
+            await processing_msg.edit_text("Чайнику не удалось включить нагрев. Попробуйте еще раз")
             return
     else:
-        logger.warning(f"Пользователь вводит чтото странное, у него желаемая температуру {input_num}")
+        logger.warning(
+            f"Пользователь вводит чтото странное, у него желаемая температуру {input_num}"
+        )
         await message.reply(
-            f"Число желаемой температуры должно быть строго от 40 до 99", reply_markup=cancel_kb
+            "Число желаемой температуры должно быть строго от 40 до 99",
+            reply_markup=cancel_kb,
         )  # TODO реализовать механизм нагревания от 90 до 99
 
 

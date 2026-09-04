@@ -56,7 +56,9 @@ class InMemoryOAuthStore:
     def _purge_expired_locked(self) -> None:
         now = time.time()
         self._codes = {code: exp for code, exp in self._codes.items() if exp >= now}
-        self._refresh_tokens = {token: record for token, record in self._refresh_tokens.items() if record[1] >= now}
+        self._refresh_tokens = {
+            token: record for token, record in self._refresh_tokens.items() if record[1] >= now
+        }
 
 
 class RedisOAuthStore:

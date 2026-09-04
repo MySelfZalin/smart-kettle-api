@@ -1,7 +1,12 @@
-from pydantic import BaseModel, computed_field, Field
+from pydantic import BaseModel, Field, computed_field
 
-
-STATUS_MAP = {0: "Выключен", 1: "Нагрев", 2: "Кипячение", 3: "Остывание", 4: "Поддержание температуры"}
+STATUS_MAP = {
+    0: "Выключен",
+    1: "Нагрев",
+    2: "Кипячение",
+    3: "Остывание",
+    4: "Поддержание температуры",
+}
 
 
 class KettleState(BaseModel):

@@ -1,8 +1,8 @@
-from typing import Optional
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -13,10 +13,10 @@ class Settings(BaseSettings):
     KETTLE_USERNAME: str
     KETTLE_PASSWORD: str
     JWT_SECRET: str
-    ADMIN_ID: Optional[set[int]] = None
-    PROXY_URL: Optional[str] = None
-    REDIS_URL: Optional[str] = None
-    YANDEX_CLIENT_ID: Optional[str] = None
+    ADMIN_ID: set[int] | None = None
+    PROXY_URL: str | None = None
+    REDIS_URL: str | None = None
+    YANDEX_CLIENT_ID: str | None = None
     QUIET_MODE_START: str = "23:00:00"
     QUIET_MODE_END: str = "11:00:00"
     QUIET_MODE_TIMEZONE: str = "Europe/Moscow"
@@ -35,7 +35,9 @@ class Settings(BaseSettings):
         try:
             return {int(item) for item in value}
         except (TypeError, ValueError) as e:
-            raise ValueError("ADMIN_ID должен быть числом или списком чисел (через запятую) или None") from e
+            raise ValueError(
+                "ADMIN_ID должен быть числом или списком чисел (через запятую) или None"
+            ) from e
 
     @field_validator("PROXY_URL", "YANDEX_CLIENT_ID", mode="before")
     @classmethod
