@@ -75,7 +75,7 @@ async def query_devices(
     if state is None:
         raise HTTPException(status_code=503, detail="Чайник недоступен")
 
-    is_on = True if state.status_code in [1, 2, 4] else False
+    is_on = state.status_code in [1, 2, 4]
 
     return {
         "request_id": x_request_id,

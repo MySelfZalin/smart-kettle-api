@@ -31,13 +31,13 @@ def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) ->
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Токен протух, войдите заново",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from None
     except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Невалидный токен: {e}",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
     if payload.get("exp") and payload["exp"] < time.time():
         raise HTTPException(

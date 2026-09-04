@@ -26,9 +26,9 @@ async def _get_state(session: aiohttp.ClientSession) -> dict | None:
         logger.error(f"Ошибка соединения с сервером: {e}")
         return None
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок API
         # всякие остальные случаи
-        logger.error(f"Непредвиденная ошибка в _get_state: {e}")
+        logger.exception(f"Непредвиденная ошибка в _get_state: {e}")
         return None
 
 
@@ -54,9 +54,9 @@ async def _boil(session: aiohttp.ClientSession, temp: int) -> dict:
         logger.error(f"Ошибка соединения с сервером: {e}")
         return {"success": False}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок API
         # всякие остальные случаи
-        logger.error(f"Непредвиденная ошибка в _boil: {e}")
+        logger.exception(f"Непредвиденная ошибка в _boil: {e}")
         return {"success": False}
 
 
@@ -80,7 +80,7 @@ async def _stop_boil(session: aiohttp.ClientSession) -> dict:
         logger.error(f"Ошибка соединения с сервером: {e}")
         return {"success": False}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок API
         # всякие остальные случаи
-        logger.error(f"Непредвиденная ошибка в _boil: {e}")
+        logger.exception(f"Непредвиденная ошибка в _boil: {e}")
         return {"success": False}

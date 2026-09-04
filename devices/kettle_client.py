@@ -60,7 +60,7 @@ class KettleClient:
                 await asyncio.sleep(0.25)
             except DeviceException as e:
                 logger.error(f"Ошибка протокола: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок чайника
                 logger.exception(f"Неизвестная ошибка {e}")
         logger.error("🔴Чайник не отвечает!!!")
         return None
@@ -83,10 +83,7 @@ class KettleClient:
         delta_t = target_temp - current_temp
         base_time = delta_t / v_max
 
-        if current_temp < 45:
-            total_time = base_time + c_start
-        else:
-            total_time = base_time
+        total_time = base_time + c_start if current_temp < 45 else base_time
 
         return {"success": True, "predict_time": int(total_time)}
 
@@ -122,7 +119,7 @@ class KettleClient:
             except DeviceException as e:
                 logger.error(f"Ошибка протокола: {e}")
                 return False
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок чайника
                 logger.exception(f"Неизвестная ошибка {e}")
                 return False
         logger.error("Не удалось отправить запрос за 3 попытки")
@@ -156,7 +153,7 @@ class KettleClient:
             except DeviceException as e:
                 logger.error(f"Ошибка протокола: {e}")
                 return False
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок чайника
                 logger.exception(f"Неизвестная ошибка {e}")
                 return False
 
@@ -173,7 +170,7 @@ class KettleClient:
 
             try:
                 await self.stop()
-            except Exception as e:
-                logger.error(f"Ошибка в спам-цикле: {e}")
+            except Exception as e:  # noqa: BLE001 - не прерывать работу из-за ошибок чайника
+                logger.exception(f"Ошибка в спам-цикле: {e}")
 
             await asyncio.sleep(0.6)
