@@ -1,5 +1,4 @@
 import logging
-import secrets
 import sys
 
 import uvicorn
@@ -11,6 +10,7 @@ from loguru import logger
 
 from config import settings
 from fast_api.api.smart_kettle import kettle_router
+from fast_api.api.users_db import authenticate_user, init_db
 from fast_api.api.yandex_auth import yandex_auth_router
 from fast_api.api.yandex_smarthome import yandex_smarthome_router
 
@@ -59,7 +59,6 @@ def read_root():
 
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    from fast_api.api.users_db import authenticate_user
 
     user_id = authenticate_user(credentials.username, credentials.password)
     
@@ -99,7 +98,6 @@ if __name__ == "__main__":
     uvicorn_access.propagate = False
     uvicorn_error.propagate = False
 
-    from fast_api.api.users_db import init_db
     init_db(settings.KETTLE_USERNAME, settings.KETTLE_PASSWORD)
 
     uvicorn.run("fast_api.main:app", host="0.0.0.0", port=8000, reload=False, log_config=None)

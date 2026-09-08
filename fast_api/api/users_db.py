@@ -3,14 +3,13 @@ import os
 import secrets
 import sqlite3
 from pathlib import Path
-from typing import Optional
 
 DB_PATH = Path("data/users.sqlite3")
 
 
 def init_db(
-    default_username: Optional[str] = None,
-    default_password: Optional[str] = None,
+    default_username: str | None = None,
+    default_password: str | None = None,
     default_user_id: str = "admin",
 ) -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -58,7 +57,7 @@ def create_user(user_id: str, username: str, password: str) -> None:
         conn.commit()
 
 
-def authenticate_user(username: str, password: str) -> Optional[str]:
+def authenticate_user(username: str, password: str) -> str | None:
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(

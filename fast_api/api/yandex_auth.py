@@ -1,4 +1,4 @@
-import secrets
+import asyncio
 import time
 from typing import Annotated
 from urllib.parse import urlencode
@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from config import settings
 from fast_api.api.oauth_store import create_oauth_store
+from fast_api.api.users_db import authenticate_user
 
 yandex_auth_router = APIRouter(prefix="/auth/yandex", tags=["Yandex Authentication"])
 
@@ -72,9 +73,6 @@ async def login(
             status_code=400, detail="redirect_uri не совпадает с адресом брокера Яндекса"
         )
 
-    import asyncio
-    from fast_api.api.users_db import authenticate_user
-    
     user_id = await asyncio.to_thread(authenticate_user, username, password)
 
     if not user_id:
