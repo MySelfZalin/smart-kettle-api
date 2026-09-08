@@ -9,23 +9,25 @@ class InMemoryOAuthStore:
     REFRESH_TOKEN_TTL_SECONDS = 2592000  # 30 * 24 * 60 * 60
 
     def __init__(self) -> None:
-        self._codes: dict[str, float] = {}
+        self._codes: dict[str, tuple[str, float]] = {}
         self._refresh_tokens: dict[str, tuple[str, float]] = {}
         self._lock = Lock()
 
-    def issue(self) -> str:
+    def issue(self, user_id: str) -> str:
         code = secrets.token_urlsafe(32)
         with self._lock:
             self._purge_expired_locked()
-            self._codes[code] = time.time() + self.AUTH_CODE_TTL_SECONDS
+            self._codes[code] = (user_id, time.time() + self.AUTH_CODE_TTL_SECONDS)
         return code
 
-    def consume(self, code: str) -> bool:
+    def consume(self, code: str) -> str | None:
         now = time.time()
         with self._lock:
             self._purge_expired_locked()
-            expires_at = self._codes.pop(code, None)
-            return expires_at is not None and expires_at >= now
+            record = self._codes.pop(code, None)
+            if record is not None and record[1] >= now:
+                return record[0]
+            return None
 
     def issue_refresh(self, user_id: str) -> str:
         token = secrets.token_urlsafe(48)
@@ -55,7 +57,7 @@ class InMemoryOAuthStore:
 
     def _purge_expired_locked(self) -> None:
         now = time.time()
-        self._codes = {code: exp for code, exp in self._codes.items() if exp >= now}
+        self._codes = {code: record for code, record in self._codes.items() if record[1] >= now}
         self._refresh_tokens = {
             token: record for token, record in self._refresh_tokens.items() if record[1] >= now
         }
@@ -80,22 +82,23 @@ class RedisOAuthStore:
         self._redis = redis.Redis.from_url(redis_url, decode_responses=True)
         self._prefix = "smart-kettle:oauth:"
 
-    def issue(self) -> str:
+    def issue(self, user_id: str) -> str:
         code = secrets.token_urlsafe(32)
-        self._redis.setex(self._key("code", code), self.AUTH_CODE_TTL_SECONDS, "1")
+        self._redis.setex(self._key("code", code), self.AUTH_CODE_TTL_SECONDS, user_id)
         return code
 
-    def consume(self, code: str) -> bool:
+    def consume(self, code: str) -> str | None:
         key = self._key("code", code)
         try:
-            return self._redis.getdel(key) is not None
+            val = self._redis.getdel(key)
+            return str(val) if val else None
         except AttributeError:
-            deleted = self._redis.eval(
+            val = self._redis.eval(
                 "local value = redis.call('GET', KEYS[1]); if value then redis.call('DEL', KEYS[1]) end; return value",
                 1,
                 key,
             )
-            return deleted is not None
+            return str(val) if val else None
 
     def issue_refresh(self, user_id: str) -> str:
         token = secrets.token_urlsafe(48)
