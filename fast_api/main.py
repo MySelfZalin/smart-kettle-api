@@ -59,10 +59,11 @@ def read_root():
 
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    is_username_correct = secrets.compare_digest(credentials.username, settings.KETTLE_USERNAME)
-    is_password_correct = secrets.compare_digest(credentials.password, settings.KETTLE_PASSWORD)
+    from fast_api.api.users_db import authenticate_user
 
-    if not (is_username_correct and is_password_correct):
+    user_id = authenticate_user(credentials.username, credentials.password)
+    
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -97,5 +98,8 @@ if __name__ == "__main__":
     uvicorn_logger.propagate = False
     uvicorn_access.propagate = False
     uvicorn_error.propagate = False
+
+    from fast_api.api.users_db import init_db
+    init_db(settings.KETTLE_USERNAME, settings.KETTLE_PASSWORD)
 
     uvicorn.run("fast_api.main:app", host="0.0.0.0", port=8000, reload=False, log_config=None)

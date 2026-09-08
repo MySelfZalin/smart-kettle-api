@@ -72,10 +72,12 @@ async def login(
             status_code=400, detail="redirect_uri не совпадает с адресом брокера Яндекса"
         )
 
-    username_ok = secrets.compare_digest(username, settings.KETTLE_USERNAME)
-    password_ok = secrets.compare_digest(password, settings.KETTLE_PASSWORD)
+    import asyncio
+    from fast_api.api.users_db import authenticate_user
+    
+    user_id = await asyncio.to_thread(authenticate_user, username, password)
 
-    if not (username_ok and password_ok):
+    if not user_id:
         return templates.TemplateResponse(
             request=request,
             name="login.html",
@@ -88,7 +90,7 @@ async def login(
             },
         )
 
-    code = code_store.issue()
+    code = code_store.issue(user_id)
     params = {"state": state, "code": code, "client_id": client_id}
     if scope:
         params["scope"] = scope
@@ -111,7 +113,8 @@ async def get_token(
         )
 
     if grant_type == "authorization_code":
-        if not code_store.consume(code or ""):
+        user_id = code_store.consume(code or "")
+        if not user_id:
             return JSONResponse(
                 status_code=400,
                 content={
@@ -119,7 +122,6 @@ async def get_token(
                     "error_description": "Неверный или просроченный код авторизации",
                 },
             )
-        user_id = "admin"
     elif grant_type == "refresh_token":
         rotated = code_store.rotate_refresh(refresh_token or "")
         if rotated is None:
