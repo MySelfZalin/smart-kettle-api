@@ -97,6 +97,9 @@ async def get_token(
     client_id: Annotated[str | None, Form()] = None,
     client_secret: Annotated[str | None, Form()] = None,
 ):
+    if client_id and client_id != settings.YANDEX_CLIENT_ID:
+        return JSONResponse(status_code=400, content={"error": "invalid_client", "error_description": "Неизвестный client_id"})
+
     if grant_type == "authorization_code":
         if not code_store.consume(code or ""):
             return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Неверный или просроченный код авторизации"})

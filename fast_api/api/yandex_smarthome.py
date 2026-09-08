@@ -10,6 +10,12 @@ from fast_api.api.smart_kettle import kettle_client
 yandex_smarthome_router = APIRouter(prefix="/v1.0", tags=["Yandex smarthome"])
 
 
+@yandex_smarthome_router.head("/")
+@yandex_smarthome_router.get("/")
+async def ping():
+    return "OK"
+
+
 @yandex_smarthome_router.get("/user/devices")
 async def get_devices(
     x_request_id: Annotated[str, Header(alias="X-Request-Id")],
