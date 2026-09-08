@@ -194,3 +194,8 @@ CLAUDE.md
 .claudeignore
 YANDEX_OAUTH.md
 remote_start.sh
+.geminiignore
+.gitignore
+GEMINI.md
+.agents/mcp_config.json
+AGENTS.md
