@@ -20,7 +20,7 @@ async def get_devices(
     return {
         "request_id": x_request_id,
         "payload": {
-            "user_id": "admin",
+            "user_id": user_id,
             "devices": [
                 {
                     "id": "my_smart_kettle",

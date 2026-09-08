@@ -55,6 +55,9 @@ async def login(
     redirect_uri: Annotated[str, Form()],
     state: Annotated[str, Form()],
 ):
+    if redirect_uri != YANDEX_BROKER_REDIRECT_URI:
+        raise HTTPException(status_code=400, detail="redirect_uri не совпадает с адресом брокера Яндекса")
+
     username_ok = secrets.compare_digest(username, settings.KETTLE_USERNAME)
     password_ok = secrets.compare_digest(password, settings.KETTLE_PASSWORD)
 
