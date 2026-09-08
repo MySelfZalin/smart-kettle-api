@@ -156,3 +156,13 @@ async def handle_action(
         "request_id": x_request_id,
         "payload": {"devices": [{"id": "my_smart_kettle", "capabilities": response_capabilities}]},
     }
+
+
+@yandex_smarthome_router.post("/user/unlink")
+async def handle_unlink(
+    x_request_id: Annotated[str, Header(alias="X-Request-Id")],
+    payload: dict = Depends(verify_jwt),
+):
+    user_id = payload.get("sub", "unknown")
+    logger.info(f"[{user_id}] отвязал аккаунт от Яндекса (X-Request-Id: {x_request_id})")
+    return {"request_id": x_request_id}

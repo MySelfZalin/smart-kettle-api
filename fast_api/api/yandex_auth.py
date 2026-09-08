@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 import jwt
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from config import settings
@@ -23,7 +23,7 @@ YANDEX_BROKER_REDIRECT_URI = "https://social.yandex.net/broker/redirect"
 
 @yandex_auth_router.get("/authorize")
 async def authorize(
-    client_id: str, response_type: str, redirect_uri: str, state: str, request: Request
+    client_id: str, response_type: str, redirect_uri: str, state: str, request: Request, scope: str | None = None
 ):
     errors = []
     if settings.YANDEX_CLIENT_ID is None:
@@ -43,7 +43,12 @@ async def authorize(
     return templates.TemplateResponse(
         request=request,
         name="login.html",
-        context={"redirect_uri": redirect_uri, "state": state},
+        context={
+            "redirect_uri": redirect_uri, 
+            "state": state,
+            "client_id": client_id,
+            "scope": scope or "",
+        },
     )
 
 
@@ -54,6 +59,8 @@ async def login(
     password: Annotated[str, Form()],
     redirect_uri: Annotated[str, Form()],
     state: Annotated[str, Form()],
+    client_id: Annotated[str, Form()] = "",
+    scope: Annotated[str, Form()] = "",
 ):
     if redirect_uri != YANDEX_BROKER_REDIRECT_URI:
         raise HTTPException(status_code=400, detail="redirect_uri не совпадает с адресом брокера Яндекса")
@@ -68,12 +75,17 @@ async def login(
             context={
                 "redirect_uri": redirect_uri,
                 "state": state,
+                "client_id": client_id,
+                "scope": scope,
                 "error": "Неверный логин или пароль, попробуйте еще раз",
             },
         )
 
     code = code_store.issue()
-    redirect_url = f"{redirect_uri}?{urlencode({'state': state, 'code': code})}"
+    params = {'state': state, 'code': code, 'client_id': client_id}
+    if scope:
+        params['scope'] = scope
+    redirect_url = f"{redirect_uri}?{urlencode(params)}"
     return RedirectResponse(url=redirect_url, status_code=302)
 
 
@@ -87,15 +99,15 @@ async def get_token(
 ):
     if grant_type == "authorization_code":
         if not code_store.consume(code or ""):
-            raise HTTPException(status_code=400, detail="Неверный или просроченный код авторизации")
+            return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Неверный или просроченный код авторизации"})
         user_id = "admin"
     elif grant_type == "refresh_token":
         rotated = code_store.rotate_refresh(refresh_token or "")
         if rotated is None:
-            raise HTTPException(status_code=400, detail="Неверный или просроченный refresh-токен")
+            return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Неверный или просроченный refresh-токен"})
         user_id, refresh_token = rotated
     else:
-        raise HTTPException(status_code=400, detail="Неподдерживаемый grant_type")
+        return JSONResponse(status_code=400, content={"error": "unsupported_grant_type", "error_description": "Неподдерживаемый grant_type"})
 
     payload = {"sub": user_id, "exp": int(time.time()) + ACCESS_TOKEN_TTL_SECONDS}
     access_token = jwt.encode(payload=payload, key=settings.JWT_SECRET, algorithm="HS256")
