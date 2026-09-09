@@ -57,3 +57,6 @@ urllib3==2.7.0
 uvicorn==0.46.0
 yarl==1.23.0
 zeroconf==0.148.0
+influxdb-client[async]==1.48.0
+matplotlib==3.10.1
+seaborn==0.13.2

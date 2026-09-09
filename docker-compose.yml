@@ -32,6 +32,7 @@ services:
       API_BASE_URL: http://127.0.0.1:8000
       PROXY_URL: http://127.0.0.1:10809
       TZ: Europe/Moscow
+      INFLUXDB_URL: http://127.0.0.1:8086
     depends_on:
       api:
         condition: service_healthy
@@ -54,5 +55,35 @@ services:
       timeout: 3s
       retries: 10
 
+  influxdb:
+    image: influxdb:2.7-alpine
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-smart-home}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-kettle}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-secret-admin-token}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: adminpassword
+    depends_on:
+      - influxdb
+    volumes:
+      - grafana-data:/var/lib/grafana
+
 volumes:
   redis-data:
+  influxdb-data:
+  grafana-data:

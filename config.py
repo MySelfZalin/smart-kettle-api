@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     QUIET_MODE_START: str = "23:00:00"
     QUIET_MODE_END: str = "11:00:00"
     QUIET_MODE_TIMEZONE: str = "Europe/Moscow"
+    INFLUXDB_URL: str = "http://localhost:8086"
+    INFLUXDB_TOKEN: str = ""
+    INFLUXDB_ORG: str = "smart-home"
+    INFLUXDB_BUCKET: str = "kettle"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

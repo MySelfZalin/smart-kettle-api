@@ -199,3 +199,4 @@ remote_start.sh
 GEMINI.md
 .agents/mcp_config.json
 AGENTS.md
+docs/influx_grafana_implementation_plan.md
