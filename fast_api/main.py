@@ -8,8 +8,12 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from loguru import logger
 
+import asyncio
+from contextlib import asynccontextmanager
+
 from config import settings
-from fast_api.api.smart_kettle import kettle_router
+from fast_api.api.metrics import metrics_client
+from fast_api.api.smart_kettle import kettle_client, kettle_router
 from fast_api.api.users_db import authenticate_user, init_db
 from fast_api.api.yandex_auth import yandex_auth_router
 from fast_api.api.yandex_smarthome import yandex_smarthome_router
@@ -46,7 +50,25 @@ logger.add(
 
 security = HTTPBasic()
 
-app = FastAPI(title="Smart-Kettle API", docs_url=None, redoc_url=None, openapi_url=None)
+async def poll_kettle_status():
+    while True:
+        try:
+            state = await kettle_client.get_state()
+            if state is not None:
+                await metrics_client.write_kettle_state(
+                    state.current_temp, state.target, state.status_code
+                )
+        except Exception as e:
+            logger.error(f"Error polling kettle: {e}")
+        await asyncio.sleep(10)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(poll_kettle_status())
+    yield
+    task.cancel()
+
+app = FastAPI(title="Smart-Kettle API", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
 
 app.include_router(kettle_router)
 app.include_router(yandex_auth_router)
