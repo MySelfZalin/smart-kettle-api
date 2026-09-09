@@ -50,3 +50,22 @@ async def stop_boil(message: types.Message, aio_session: aiohttp.ClientSession):
 async def get_TGid(message: types.Message):
     id = message.from_user.id
     await message.answer(f"твой айди {id}")
+
+
+@rout.message(Command("graphics"))
+async def get_graphics(message: types.Message):
+    from tg_bot.graphics import generate_graphics_image
+    from aiogram.types import BufferedInputFile
+
+    processing_msg = await message.answer("Рисую график и считаю статистику...")
+
+    buf, stats = await generate_graphics_image()
+    
+    text = "⚡ <b>Статистика энергопотребления:</b>\n\n"
+    for period, data in stats.items():
+        text += f"<b>За {period}:</b> {data['kwh']} кВт*ч (≈ {data['cost']} руб.)\n"
+
+    photo = BufferedInputFile(buf.read(), filename="chart.png")
+    
+    await message.answer_photo(photo=photo, caption=text)
+    await processing_msg.delete()
