@@ -36,10 +36,15 @@ async def get_devices(
                     "type": "devices.types.cooking.kettle",
                     "status_info": {"reportable": True},
                     "capabilities": [
-                        {"type": "devices.capabilities.on_off", "retrievable": True},
+                        {
+                            "type": "devices.capabilities.on_off",
+                            "retrievable": True,
+                            "reportable": True,
+                        },
                         {
                             "type": "devices.capabilities.range",
                             "retrievable": True,
+                            "reportable": True,
                             "parameters": {
                                 "instance": "temperature",
                                 "random_access": True,
@@ -52,6 +57,7 @@ async def get_devices(
                         {
                             "type": "devices.properties.float",
                             "retrievable": True,
+                            "reportable": True,
                             "parameters": {
                                 "instance": "temperature",
                                 "unit": "unit.temperature.celsius",
