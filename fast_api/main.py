@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import time
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -15,6 +16,7 @@ from fast_api.api.metrics import metrics_client
 from fast_api.api.smart_kettle import kettle_client, kettle_router
 from fast_api.api.users_db import authenticate_user, init_db
 from fast_api.api.yandex_auth import yandex_auth_router
+from fast_api.api.yandex_callback import yandex_callback_client
 from fast_api.api.yandex_smarthome import yandex_smarthome_router
 
 
@@ -49,25 +51,85 @@ logger.add(
 
 security = HTTPBasic()
 
+
 async def poll_kettle_status():
+    last_temp: int | None = None
+    last_target: int | None = None
+    last_is_on: bool | None = None
+    last_is_lifting: bool | None = None
+    last_online: bool = True
+    last_sent_time: float = 0.0
+
     while True:
         try:
             state = await kettle_client.get_state()
+            now = time.time()
+
             if state is not None:
                 await metrics_client.write_kettle_state(
                     state.current_temp, state.target, state.status_code
                 )
-        except Exception as e:  # noqa: BLE001 - изза ошибки не прерывать работу сети и устройства
+
+                is_on = state.status_code in (1, 2, 4)
+                should_notify = (
+                    last_temp is None
+                    or not last_online
+                    or abs(state.current_temp - last_temp) >= 1
+                    or is_on != last_is_on
+                    or state.target != last_target
+                    or state.is_lifting != last_is_lifting
+                    or (now - last_sent_time) >= 600
+                )
+
+                if should_notify:
+                    sent = await yandex_callback_client.send_state(
+                        current_temp=state.current_temp,
+                        target_temp=state.target,
+                        is_on=is_on,
+                        online=True,
+                    )
+                    if sent:
+                        last_temp = state.current_temp
+                        last_target = state.target
+                        last_is_on = is_on
+                        last_is_lifting = state.is_lifting
+                        last_online = True
+                        last_sent_time = now
+                    else:
+                        # При ошибке шлюза Яндекса повторяем через 30 секунд (вместо 10 минут)
+                        last_sent_time = now - 570
+            elif last_online:
+                sent = await yandex_callback_client.send_state(
+                    current_temp=0,
+                    target_temp=0,
+                    is_on=False,
+                    online=False,
+                )
+                if sent:
+                    last_online = False
+                    last_sent_time = now
+                else:
+                    last_sent_time = now - 570
+        except Exception as e:  # noqa: BLE001 - из-за ошибки не прерывать работу сети и устройства
             logger.error(f"Error polling kettle: {e}")
         await asyncio.sleep(10)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(poll_kettle_status())
     yield
     task.cancel()
+    await yandex_callback_client.close()
 
-app = FastAPI(title="Smart-Kettle API", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+
+app = FastAPI(
+    title="Smart-Kettle API",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+    lifespan=lifespan,
+)
 
 app.include_router(kettle_router)
 app.include_router(yandex_auth_router)
@@ -82,7 +144,7 @@ def read_root():
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
 
     user_id = authenticate_user(credentials.username, credentials.password)
-    
+
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
