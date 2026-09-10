@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import sys
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -7,9 +9,6 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from loguru import logger
-
-import asyncio
-from contextlib import asynccontextmanager
 
 from config import settings
 from fast_api.api.metrics import metrics_client
@@ -58,7 +57,7 @@ async def poll_kettle_status():
                 await metrics_client.write_kettle_state(
                     state.current_temp, state.target, state.status_code
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - изза ошибки не прерывать работу сети и устройства
             logger.error(f"Error polling kettle: {e}")
         await asyncio.sleep(10)
 

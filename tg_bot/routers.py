@@ -4,8 +4,10 @@ import aiohttp
 from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
+from aiogram.types import BufferedInputFile
 
 from tg_bot.api_client import _get_state, _stop_boil
+from tg_bot.graphics import generate_graphics_image
 from tg_bot.inline_kb import start_kb
 
 rout = Router()
@@ -54,9 +56,6 @@ async def get_TGid(message: types.Message):
 
 @rout.message(Command("graphics"))
 async def get_graphics(message: types.Message):
-    from tg_bot.graphics import generate_graphics_image
-    from aiogram.types import BufferedInputFile
-
     processing_msg = await message.answer("Рисую график и считаю статистику...")
 
     buf, stats = await generate_graphics_image()
