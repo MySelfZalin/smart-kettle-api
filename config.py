@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     PROXY_URL: str | None = None
     REDIS_URL: str | None = None
     YANDEX_CLIENT_ID: str | None = None
+    YANDEX_SKILL_ID: str | None = None
+    YANDEX_OAUTH_TOKEN: str | None = None
+    YANDEX_USER_ID: str = "admin"
     QUIET_MODE_START: str = "23:00:00"
     QUIET_MODE_END: str = "11:00:00"
     QUIET_MODE_TIMEZONE: str = "Europe/Moscow"
@@ -43,7 +46,9 @@ class Settings(BaseSettings):
                 "ADMIN_ID должен быть числом или списком чисел (через запятую) или None"
             ) from e
 
-    @field_validator("PROXY_URL", "YANDEX_CLIENT_ID", mode="before")
+    @field_validator(
+        "PROXY_URL", "YANDEX_CLIENT_ID", "YANDEX_SKILL_ID", "YANDEX_OAUTH_TOKEN", mode="before"
+    )
     @classmethod
     def normalize_optional_str(cls, value):
         if isinstance(value, str) and value.strip().lower() in ("", "none"):
